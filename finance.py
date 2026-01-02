@@ -1,31 +1,31 @@
 import yfinance as yf
 from datetime import datetime, timedelta
-from lxml import html
+# from lxml import html
 
 N = 30
 
 
-def scrape_hang_seng_codes():
-    # Open local HTML file you downloaded as test.html
-    with open("hsi.html", "r", encoding="utf-8") as f:
-        content = f.read()
+# def scrape_hang_seng_codes():
+#     # Open local HTML file you downloaded as test.html
+#     with open("hsi.html", "r", encoding="utf-8") as f:
+#         content = f.read()
 
-    # Parse the HTML content from the file
-    tree = html.fromstring(content)
+#     # Parse the HTML content from the file
+#     tree = html.fromstring(content)
 
-    codes = []
-    for i in range(1, 90):
-        xpath_code = f'//*[@id="tblTS2"]/tbody/tr[{i}]/td[1]/div[2]/div[1]/a'
-        elements = tree.xpath(xpath_code)
-        if elements:
-            code = elements[0].text.strip()
+#     codes = []
+#     for i in range(1, 90):
+#         xpath_code = f'//*[@id="tblTS2"]/tbody/tr[{i}]/td[1]/div[2]/div[1]/a'
+#         elements = tree.xpath(xpath_code)
+#         if elements:
+#             code = elements[0].text.strip()
 
-            # print(f"Row {i}: found code {elements[0].text.strip()}")
-            codes.append(code[1:])
-        else:
-            print(f"Row {i}: no code found")
+#             # print(f"Row {i}: found code {elements[0].text.strip()}")
+#             codes.append(code[1:])
+#         else:
+#             print(f"Row {i}: no code found")
 
-    return codes
+#     return codes
 
 
 if __name__ == "__main__":
