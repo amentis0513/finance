@@ -14,6 +14,11 @@ if __name__ == "__main__":
     with open("hsi_list.txt", "r") as f:
         stock_codes = [line.strip() for line in f.readlines() if line.strip()]
     opts = Options()
+
+    # check if ./stocks directory exists, if not create it
+    if not os.path.exists("./stocks"):
+        os.makedirs("./stocks")
+
     # 视情况选择 headless 或不，为调试建议显示界面
     # opts.add_argument("--headless=new")
     opts.add_argument("--disable-gpu")
