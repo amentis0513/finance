@@ -13,7 +13,7 @@ conda activate finance
 To run the code, use:
 
 ```
-python finance.py
+python main.py update cal
 ```
 
 comment
