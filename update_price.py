@@ -13,11 +13,9 @@ def run_with_page_timeout(url, stock, page_timeout=8, wait_for_table=10, driver=
     try:
         # 设置页面加载超时时间（秒）
         driver.set_page_load_timeout(page_timeout)
+
         try:
-            print(
-                f"Calling driver.get with page load timeout = {page_timeout}s...",
-                flush=True,
-            )
+            print(f"Getting URL: {url} with stock {stock}", flush=True)
             driver.get(url)
             print("driver.get completed normally.", flush=True)
         except TimeoutException as e:
@@ -27,26 +25,17 @@ def run_with_page_timeout(url, stock, page_timeout=8, wait_for_table=10, driver=
                 flush=True,
             )
 
-        print("Current URL:", driver.current_url, flush=True)
-        print("Title:", driver.title, flush=True)
-
         # 现在尝试等待我们真正关心的元素（例如表格行）一段较长时间（可单独指定）
         wait = WebDriverWait(driver, wait_for_table)
         try:
             row_css = "table tbody tr"
-            print(
-                f"Waiting up to {wait_for_table}s for table rows to appear...",
-                flush=True,
-            )
             wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, row_css)))
             rows = driver.find_elements(By.CSS_SELECTOR, row_css)
-            print(f"Found {len(rows)} rows (limited to first 20):", flush=True)
             prices = []
             for i, row in enumerate(rows[:21], start=2):
                 cols = row.find_elements(By.TAG_NAME, "td")
-                # print(i, len(cols), [c.text for c in cols[:6]])
                 prices.append(float(cols[4].text))
-                print(i, float(cols[4].text))
+                # print(i, float(cols[4].text))
             if prices:
                 # write the prices to a file named ./stocks/{stock}_prices.txt
                 with open(f"./stocks/{stock}_prices.txt", "w") as f:
@@ -60,16 +49,9 @@ def run_with_page_timeout(url, stock, page_timeout=8, wait_for_table=10, driver=
             )
             # 诊断：打印 page_source 长度与前面片段
             src = driver.page_source or ""
-            print("page_source length:", len(src), flush=True)
-            print("page_source (first 1000 chars):")
-            print(src[:1000], flush=True)
-
+            print(f"Finish extracting prices for {stock}", flush=True)
     finally:
-        print("Quitting driver...", flush=True)
-        try:
-            return
-        except Exception:
-            pass
+        pass
 
 
 if __name__ == "__main__":

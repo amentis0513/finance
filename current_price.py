@@ -9,30 +9,51 @@ from selenium.webdriver.support import expected_conditions as EC
 XPATH_PRICE = '//*[@id="main-content-wrapper"]/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span'
 
 
-def get_current_price(url, stock, driver):
+def get_current_price(
+    url,
+    stock,
+    driver,
+    page_timeout=8,
+    wait_for_table=10,
+):
 
     try:
+        # 设置页面加载超时时间（秒）
+        driver.set_page_load_timeout(page_timeout)
+
         try:
+            print(f"Getting URL: {url} with stock {stock}", flush=True)
             driver.get(url)
-        except TimeoutException:
-            # continue even if page load timed out
-            pass
+            print("driver.get completed normally.", flush=True)
+        except TimeoutException as e:
+            # 当超时发生，我们捕获它并继续——浏览器仍然存在并可能部分加载页面
+            print(
+                f"driver.get timed out after {page_timeout}s, continuing. Exception: {e}",
+                flush=True,
+            )
+            return None
 
-        # Now explicitly wait up to this many seconds for the price element to appear
-        wait = WebDriverWait(driver, 5)
+        # 现在尝试等待我们真正关心的元素（例如表格行）一段较长时间（可单独指定）
+        wait = WebDriverWait(driver, wait_for_table)
         try:
-            el = wait.until(EC.presence_of_element_located((By.XPATH, XPATH_PRICE)))
-            # Print only the price text
-            print(f"{stock} with current price: {el.text}")
-            # print(el.text)
-        except TimeoutException:
-            # element didn't appear in time -> print nothing (or print an error)
-            # We'll print nothing as you requested only the price; but to help debug uncomment:
-            print(f"ERROR: {stock} price element not found", file=sys.stderr)
-            pass
-
+            row_css = "table tbody tr"
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, row_css)))
+            rows = driver.find_elements(By.CSS_SELECTOR, row_css)
+            cols = rows[1].find_elements(By.TAG_NAME, "td")
+            price = cols[4].text
+            return float(price.replace(",", ""))
+        except Exception as e:
+            print(
+                "Did not find table rows within wait time or other error:",
+                repr(e),
+                flush=True,
+            )
+            # 诊断：打印 page_source 长度与前面片段
+            src = driver.page_source or ""
+            print(f"Finish extracting prices for {stock}", flush=True)
+            return None
     finally:
-        return float(el.text)
+        pass
 
 
 if __name__ == "__main__":

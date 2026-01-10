@@ -1,6 +1,5 @@
 import sys
-import time
-import sys
+import os
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.options import Options
@@ -27,7 +26,10 @@ if __name__ == "__main__":
         except WebDriverException as e:
             print("Failed to start Chrome webdriver:", e, file=sys.stderr, flush=True)
             sys.exit(1)
+        count = 1
         for stock in stock_codes:
+            print(f"{count}: Processing {stock}", flush=True)
+            count += 1
             url = f"https://hk.finance.yahoo.com/quote/{stock}/history/"
             run_with_page_timeout(
                 url, stock=stock, page_timeout=8, wait_for_table=10, driver=driver
@@ -54,13 +56,36 @@ if __name__ == "__main__":
         except WebDriverException as e:
             print("Failed to start Chrome webdriver:", e, file=sys.stderr, flush=True)
             sys.exit(1)
-
+        count = 1
         for stock in stock_codes:
+            print(f"{count}: Processing {stock}", flush=True)
+            count += 1
+
+            # check whether "./stocks/{stock}_prices.txt" exists
+            if not os.path.exists(f"./stocks/{stock}_prices.txt"):
+                print(
+                    f"Price history file for {stock} does not exist, skipping...",
+                    flush=True,
+                )
+                continue
+
             url = f"https://hk.finance.yahoo.com/quote/{stock}/history/"
             current_price = get_current_price(url, stock=stock, driver=driver)
+            if current_price is None:
+                print(
+                    f"Could not get current price for {stock}, skipping...", flush=True
+                )
+                continue
             # get all data from ./stocks/{stock}_prices.txt and calculate mean and sd to get the z score of the current price
-            with open(f"./stocks/{stock}_prices.txt", "r") as f:
-                prices = [float(line.strip()) for line in f.readlines() if line.strip()]
+            # use try, else continue if file not found or empty
+            try:
+                with open(f"./stocks/{stock}_prices.txt", "r") as f:
+                    prices = [
+                        float(line.strip()) for line in f.readlines() if line.strip()
+                    ]
+            except Exception as e:
+                print(f"Could not read prices for {stock}: {e}", flush=True)
+                continue
 
             mean = sum(prices) / len(prices)
             variance = sum((p - mean) ** 2 for p in prices) / (len(prices) - 1)
