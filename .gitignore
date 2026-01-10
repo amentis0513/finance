@@ -2,3 +2,4 @@
 /__pycache__/
 # ignore the content in stocks but not the directory itself
 /stocks/*
+! /stocks/.gitkeep
